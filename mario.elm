@@ -1,33 +1,24 @@
 import Color exposing (..)
 import Graphics.Collage exposing (..)
 import Graphics.Element exposing (..)
-import Keyboard
-import Time exposing (..)
 import Window
 
-import Game.GameState exposing (..)
-import Util.Vector exposing (Vector2I)
-import Game.Object
+import Game.Input
+import Game.GameState exposing(GameState, update, mkGameState)
+
+import Game.Object exposing(Movable,Object)
+import Util.Vector exposing(Vector2F)
 
 
 -- UPDATE --
 
 
-step : Input -> GameState -> GameState
-step ({dt, keys, space} as input) state =
-  { state | mario <- stepMario input state.mario }
-  |> shoot space
-
-
-
-shoot : Bool -> GameState -> GameState
-shoot space state = if space then { state | objects <- ({x=state.mario.pos.x, y=state.mario.pos.y}, True) :: state.objects } else state
 
 
 
 -- DISPLAY
-ngonify : Float -> List {x: Float, y: Float} -> List Form
-ngonify h = List.map (\{x,y} -> ngon 3 10 |> filled (rgb 255 0 0) |> move (x, y + 62 - h/2))
+ngonify : Float -> List (Object a)  -> List Form
+ngonify h = List.map (\{pos} -> ngon 3 10 |> filled (rgb 255 0 0) |> move (pos.x, pos.y + 62 - h/2))
 
 render : (Int, Int) -> GameState -> Element
 render (w',h') state =
@@ -44,10 +35,9 @@ render (w',h') state =
       , ngon 4 10
         |> filled (rgb 128 128 128)
         |> move (mario.pos.x, mario.pos.y + 62 - h/2)
-      ] ++ ngonify h (List.map fst state.objects))
+      ] ++ ngonify h state.objects)
 
 -- MARIO
-input = let delta = Signal.map (\t -> t/20) (fps 25)
-        in  Signal.sampleOn delta (Signal.map3 (,,) delta Keyboard.arrows Keyboard.space)
 
-main = Signal.map2 render Window.dimensions (Signal.foldp step newGameState input)
+
+main = Signal.map2 render Window.dimensions (Signal.foldp update mkGameState Game.Input.input)

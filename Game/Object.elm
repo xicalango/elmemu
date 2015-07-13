@@ -1,10 +1,8 @@
 module Game.Object
   ( Object
-  , ObjectState
+  , ObjectState(..)
   , Movable
   , update
-  , mkAlive
-  , mkDead
   , isAlive
   ) where
   
@@ -24,25 +22,9 @@ type alias Movable a =
   { a
   | speed: Vector2F
   }
-  
-
-mkAlive = Alive
-mkDead = Dead
 
 isAlive : Object a -> Bool
 isAlive o = o.state == Alive
-
-{-
-mkObject : a -> Vector2F -> Object a
-mkObject a v = { a | pos = v }
-
-mkMovableObject : Vector2F -> Vector2F -> Movable (Object {})
-mkMovableObject pos speed =
-  { pos = pos
-  , speed = speed
-  , state = Alive
-  }
--}
 
 moving : Movable (Object a) -> Bool
 moving o = o.speed.x /= 0 || o.speed.y /= 0

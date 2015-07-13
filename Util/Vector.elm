@@ -2,6 +2,7 @@ module Util.Vector
   ( Vector2
   , Vector2I
   , Vector2F
+  , nullVector2
   , mkVector2
   , (<~~)
   , v2map
@@ -25,6 +26,7 @@ type alias Vector2F = Vector2 Float
 type alias Vector3I = Vector3 Int
 type alias Vector3F = Vector3 Float
 
+nullVector2 = mkVector2 0 0
 
 mkVector2 : a -> a -> Vector2 a
 mkVector2 x y = {x=x, y=y}

@@ -1717,23 +1717,40 @@ Elm.Game.GameState.make = function (_elm) {
    _L = _N.List.make(_elm),
    $moduleName = "Game.GameState",
    $Basics = Elm.Basics.make(_elm),
+   $Game$Input = Elm.Game.Input.make(_elm),
+   $Game$Mario = Elm.Game.Mario.make(_elm),
    $Game$Object = Elm.Game.Object.make(_elm),
+   $Game$Objects = Elm.Game.Objects.make(_elm),
    $List = Elm.List.make(_elm),
    $Maybe = Elm.Maybe.make(_elm),
    $Result = Elm.Result.make(_elm),
    $Signal = Elm.Signal.make(_elm),
    $Util$Vector = Elm.Util.Vector.make(_elm);
-   var newGameState = {_: {}
-                      ,mario: {_: {}
-                              ,dir: "left"
-                              ,pos: A2($Util$Vector.mkVector2,
-                              0,
-                              0)
-                              ,speed: A2($Util$Vector.mkVector2,
-                              0,
-                              0)
-                              ,state: $Game$Object.mkAlive}
-                      ,objects: _L.fromArray([])};
+   var shoot = F2(function (space,
+   state) {
+      return space ? _U.replace([["objects"
+                                 ,A2($List._op["::"],
+                                 A2($Game$Objects.mkProjectile,
+                                 state.mario.pos,
+                                 A2($Util$Vector.mkVector2,
+                                 0,
+                                 -1)),
+                                 state.objects)]],
+      state) : state;
+   });
+   var update = F2(function (_v0,
+   state) {
+      return function () {
+         return shoot(_v0.space)(_U.replace([["mario"
+                                             ,A2($Game$Mario.update,
+                                             _v0,
+                                             state.mario)]],
+         state));
+      }();
+   });
+   var mkGameState = {_: {}
+                     ,mario: $Game$Objects.mkMario
+                     ,objects: _L.fromArray([])};
    var GameState = F2(function (a,
    b) {
       return {_: {}
@@ -1741,9 +1758,111 @@ Elm.Game.GameState.make = function (_elm) {
              ,objects: b};
    });
    _elm.Game.GameState.values = {_op: _op
-                                ,newGameState: newGameState
+                                ,mkGameState: mkGameState
+                                ,update: update
                                 ,GameState: GameState};
    return _elm.Game.GameState.values;
+};Elm.Game = Elm.Game || {};
+Elm.Game.Input = Elm.Game.Input || {};
+Elm.Game.Input.make = function (_elm) {
+   "use strict";
+   _elm.Game = _elm.Game || {};
+   _elm.Game.Input = _elm.Game.Input || {};
+   if (_elm.Game.Input.values)
+   return _elm.Game.Input.values;
+   var _op = {},
+   _N = Elm.Native,
+   _U = _N.Utils.make(_elm),
+   _L = _N.List.make(_elm),
+   $moduleName = "Game.Input",
+   $Basics = Elm.Basics.make(_elm),
+   $Keyboard = Elm.Keyboard.make(_elm),
+   $List = Elm.List.make(_elm),
+   $Maybe = Elm.Maybe.make(_elm),
+   $Result = Elm.Result.make(_elm),
+   $Signal = Elm.Signal.make(_elm),
+   $Time = Elm.Time.make(_elm),
+   $Util$Vector = Elm.Util.Vector.make(_elm);
+   var mkInput = F3(function (dt,
+   keys,
+   space) {
+      return {_: {}
+             ,dt: dt
+             ,keys: keys
+             ,space: space};
+   });
+   var input = function () {
+      var delta = A2($Signal.map,
+      function (t) {
+         return t / 20;
+      },
+      $Time.fps(25));
+      return A2($Signal.sampleOn,
+      delta,
+      A2($Signal._op["~"],
+      A2($Signal._op["~"],
+      A2($Signal._op["<~"],
+      mkInput,
+      delta),
+      $Keyboard.arrows),
+      $Keyboard.space));
+   }();
+   var Input = F3(function (a,
+   b,
+   c) {
+      return {_: {}
+             ,dt: a
+             ,keys: b
+             ,space: c};
+   });
+   _elm.Game.Input.values = {_op: _op
+                            ,input: input
+                            ,Input: Input};
+   return _elm.Game.Input.values;
+};Elm.Game = Elm.Game || {};
+Elm.Game.Mario = Elm.Game.Mario || {};
+Elm.Game.Mario.make = function (_elm) {
+   "use strict";
+   _elm.Game = _elm.Game || {};
+   _elm.Game.Mario = _elm.Game.Mario || {};
+   if (_elm.Game.Mario.values)
+   return _elm.Game.Mario.values;
+   var _op = {},
+   _N = Elm.Native,
+   _U = _N.Utils.make(_elm),
+   _L = _N.List.make(_elm),
+   $moduleName = "Game.Mario",
+   $Basics = Elm.Basics.make(_elm),
+   $Game$Input = Elm.Game.Input.make(_elm),
+   $Game$Object = Elm.Game.Object.make(_elm),
+   $Game$Objects = Elm.Game.Objects.make(_elm),
+   $List = Elm.List.make(_elm),
+   $Maybe = Elm.Maybe.make(_elm),
+   $Result = Elm.Result.make(_elm),
+   $Signal = Elm.Signal.make(_elm),
+   $Util$Vector = Elm.Util.Vector.make(_elm);
+   var walk = F2(function (keys,
+   m) {
+      return _U.replace([["speed"
+                         ,A2($Util$Vector._op["<~~"],
+                         $Basics.toFloat,
+                         keys)]
+                        ,["dir"
+                         ,_U.cmp(keys.x,
+                         0) < 0 ? "left" : _U.cmp(keys.x,
+                         0) > 0 ? "right" : m.dir]],
+      m);
+   });
+   var update = function (_v0) {
+      return function () {
+         return function ($) {
+            return $Game$Object.update(_v0.dt)(walk(_v0.keys)($));
+         };
+      }();
+   };
+   _elm.Game.Mario.values = {_op: _op
+                            ,update: update};
+   return _elm.Game.Mario.values;
 };Elm.Game = Elm.Game || {};
 Elm.Game.Object = Elm.Game.Object || {};
 Elm.Game.Object.make = function (_elm) {
@@ -1798,20 +1917,54 @@ Elm.Game.Object.make = function (_elm) {
       _U.insert("pos",a,c));
    });
    var Dead = {ctor: "Dead"};
-   var mkDead = Dead;
    var Alive = {ctor: "Alive"};
-   var mkAlive = Alive;
    var isAlive = function (o) {
       return _U.eq(o.state,Alive);
    };
    _elm.Game.Object.values = {_op: _op
                              ,update: update
-                             ,mkAlive: mkAlive
-                             ,mkDead: mkDead
                              ,isAlive: isAlive
                              ,Object: Object
-                             ,Movable: Movable};
+                             ,Movable: Movable
+                             ,Alive: Alive
+                             ,Dead: Dead};
    return _elm.Game.Object.values;
+};Elm.Game = Elm.Game || {};
+Elm.Game.Objects = Elm.Game.Objects || {};
+Elm.Game.Objects.make = function (_elm) {
+   "use strict";
+   _elm.Game = _elm.Game || {};
+   _elm.Game.Objects = _elm.Game.Objects || {};
+   if (_elm.Game.Objects.values)
+   return _elm.Game.Objects.values;
+   var _op = {},
+   _N = Elm.Native,
+   _U = _N.Utils.make(_elm),
+   _L = _N.List.make(_elm),
+   $moduleName = "Game.Objects",
+   $Basics = Elm.Basics.make(_elm),
+   $Game$Object = Elm.Game.Object.make(_elm),
+   $List = Elm.List.make(_elm),
+   $Maybe = Elm.Maybe.make(_elm),
+   $Result = Elm.Result.make(_elm),
+   $Signal = Elm.Signal.make(_elm),
+   $Util$Vector = Elm.Util.Vector.make(_elm);
+   var mkProjectile = F2(function (pos,
+   speed) {
+      return {_: {}
+             ,pos: pos
+             ,speed: speed
+             ,state: $Game$Object.Alive};
+   });
+   var mkMario = {_: {}
+                 ,dir: "left"
+                 ,pos: $Util$Vector.nullVector2
+                 ,speed: $Util$Vector.nullVector2
+                 ,state: $Game$Object.Alive};
+   _elm.Game.Objects.values = {_op: _op
+                              ,mkMario: mkMario
+                              ,mkProjectile: mkProjectile};
+   return _elm.Game.Objects.values;
 };Elm.Graphics = Elm.Graphics || {};
 Elm.Graphics.Collage = Elm.Graphics.Collage || {};
 Elm.Graphics.Collage.make = function (_elm) {
@@ -3229,42 +3382,21 @@ Elm.Main.make = function (_elm) {
    $Basics = Elm.Basics.make(_elm),
    $Color = Elm.Color.make(_elm),
    $Game$GameState = Elm.Game.GameState.make(_elm),
+   $Game$Input = Elm.Game.Input.make(_elm),
    $Game$Object = Elm.Game.Object.make(_elm),
    $Graphics$Collage = Elm.Graphics.Collage.make(_elm),
    $Graphics$Element = Elm.Graphics.Element.make(_elm),
-   $Keyboard = Elm.Keyboard.make(_elm),
    $List = Elm.List.make(_elm),
    $Maybe = Elm.Maybe.make(_elm),
    $Result = Elm.Result.make(_elm),
    $Signal = Elm.Signal.make(_elm),
-   $Time = Elm.Time.make(_elm),
-   $Util$Vector = Elm.Util.Vector.make(_elm),
    $Window = Elm.Window.make(_elm);
-   var input = function () {
-      var delta = A2($Signal.map,
-      function (t) {
-         return t / 20;
-      },
-      $Time.fps(25));
-      return A2($Signal.sampleOn,
-      delta,
-      A4($Signal.map3,
-      F3(function (v0,v1,v2) {
-         return {ctor: "_Tuple3"
-                ,_0: v0
-                ,_1: v1
-                ,_2: v2};
-      }),
-      delta,
-      $Keyboard.arrows,
-      $Keyboard.space));
-   }();
    var ngonify = function (h) {
       return $List.map(function (_v0) {
          return function () {
             return $Graphics$Collage.move({ctor: "_Tuple2"
-                                          ,_0: _v0.x
-                                          ,_1: _v0.y + 62 - h / 2})($Graphics$Collage.filled(A3($Color.rgb,
+                                          ,_0: _v0.pos.x
+                                          ,_1: _v0.pos.y + 62 - h / 2})($Graphics$Collage.filled(A3($Color.rgb,
             255,
             0,
             0))(A2($Graphics$Collage.ngon,
@@ -3323,79 +3455,22 @@ Elm.Main.make = function (_elm) {
                               128))(A2($Graphics$Collage.ngon,
                               4,
                               10)))]),
-                 A2(ngonify,
-                 h,
-                 A2($List.map,
-                 $Basics.fst,
-                 state.objects))));
+                 A2(ngonify,h,state.objects)));
               }();}
          _U.badCase($moduleName,
-         "between lines 50 and 63");
-      }();
-   });
-   var shoot = F2(function (space,
-   state) {
-      return space ? _U.replace([["objects"
-                                 ,A2($List._op["::"],
-                                 {ctor: "_Tuple2"
-                                 ,_0: {_: {}
-                                      ,x: state.mario.pos.x
-                                      ,y: state.mario.pos.y}
-                                 ,_1: true},
-                                 state.objects)]],
-      state) : state;
-   });
-   var walk = F2(function (keys,
-   m) {
-      return _U.replace([["speed"
-                         ,A2($Util$Vector._op["<~~"],
-                         $Basics.toFloat,
-                         keys)]
-                        ,["dir"
-                         ,_U.cmp(keys.x,
-                         0) < 0 ? "left" : _U.cmp(keys.x,
-                         0) > 0 ? "right" : m.dir]],
-      m);
-   });
-   var stepMario = F2(function (_v6,
-   m) {
-      return function () {
-         switch (_v6.ctor)
-         {case "_Tuple3":
-            return $Game$Object.update(_v6._0)(walk(_v6._1)(m));}
-         _U.badCase($moduleName,
-         "between lines 40 and 42");
-      }();
-   });
-   var step = F2(function (_v11,
-   state) {
-      return function () {
-         switch (_v11.ctor)
-         {case "_Tuple3":
-            return shoot(_v11._2)(_U.replace([["mario"
-                                              ,A2(stepMario,
-                                              _v11,
-                                              state.mario)]],
-              state));}
-         _U.badCase($moduleName,
-         "between lines 28 and 29");
+         "between lines 25 and 38");
       }();
    });
    var main = A3($Signal.map2,
    render,
    $Window.dimensions,
    A3($Signal.foldp,
-   step,
-   $Game$GameState.newGameState,
-   input));
+   $Game$GameState.update,
+   $Game$GameState.mkGameState,
+   $Game$Input.input));
    _elm.Main.values = {_op: _op
-                      ,walk: walk
-                      ,step: step
-                      ,shoot: shoot
-                      ,stepMario: stepMario
                       ,ngonify: ngonify
                       ,render: render
-                      ,input: input
                       ,main: main};
    return _elm.Main.values;
 };Elm.Maybe = Elm.Maybe || {};
@@ -9410,6 +9485,9 @@ Elm.Util.Vector.make = function (_elm) {
    y) {
       return {_: {},x: x,y: y};
    });
+   var nullVector2 = A2(mkVector2,
+   0,
+   0);
    var Vector3 = F3(function (a,
    b,
    c) {
@@ -9423,6 +9501,7 @@ Elm.Util.Vector.make = function (_elm) {
       return {_: {},x: a,y: b};
    });
    _elm.Util.Vector.values = {_op: _op
+                             ,nullVector2: nullVector2
                              ,mkVector2: mkVector2
                              ,v2map: v2map
                              ,v2extend: v2extend

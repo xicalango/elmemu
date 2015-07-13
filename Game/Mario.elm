@@ -1,23 +1,13 @@
 module Game.Mario
-  ( Mario
-  , mkMario
-  , update
+  ( update
   ) where
   
-import Game.GameState exposing (Input)
-import Game.ObjectTypes exposing (Mario)
+import Game.Objects exposing(Mario)
+import Game.Input exposing (Input)
 import Game.Object exposing (Object, Movable)
-import Util.Vector exposing (..)
 
+import Util.Vector exposing (Vector2I,(<~~))
 
-
-mkMario : Mario
-mkMario =
-  { pos = mkVector2 0 0
-  , speed = mkVector2 0 0
-  , dir = "left"
-  , state = mkAlive
-  }
 
 walk : Vector2I -> Mario -> Mario
 walk keys m = { m | speed <- toFloat <~~ keys
